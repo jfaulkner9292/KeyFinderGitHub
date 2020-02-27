@@ -15,19 +15,24 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 int main (void)
 {
     char givenCipher[64];
-    char rawCipher[128];
+    char rawCipher[256];
+
+    char rawHex1[48];
+    char rawHex2[48];
+
     char str[16];
     int numChar;
+    int rawCipherInt;
     
 
     FILE *test;
     FILE *fp;
     
-    char* wordsFile = "/home/user/Documents/Key Finder/words.txt";
-    char* testFile = "/home/user/Documents/Key Finder/testOutput.txt";
+    char* wordsFile = "/home/user/Documents/KeyFinderGitHub/wordstest.txt";
+    char* testFile = "/home/user/Documents/KeyFinderGitHub/testOutput.txt";
 
     fp = fopen(wordsFile, "r");
-    test = fopen(testFile, "r");
+    test = fopen(testFile, "w");
     if (fp == NULL)
     {
         printf("Could not open file %s", wordsFile);
@@ -99,9 +104,52 @@ int main (void)
 
 	    /* Do something useful with the ciphertext here */
 	    //printf("Ciphertext is:\n");
-	    BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
-            //BIO_dump_fp (test, (const char *)ciphertext, ciphertext_len);
-	    //sprintf("%02x", BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len));
+	    //BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
+            BIO_dump_fp (test, (const char *)ciphertext, ciphertext_len);
+
+            fclose(test);
+
+            fopen(testFile, "r");
+            fread(&rawCipher, sizeof(char), 256, test);
+
+	    
+           
+            strncpy(rawHex1, &rawCipher[7], 47);
+            strncpy(rawHex2, &rawCipher[81], 47);
+
+            int len;
+            len = strlen(rawHex1);
+
+            for(int i=0; i<len; i++)
+	    {
+		if(rawHex1[i]==' ')
+		{
+			for(int j=i; j<len; j++)
+			{
+				rawHex1[j]=rawHex1[j+1];
+			}
+		len--;
+		}
+	    }
+
+            len = strlen(rawHex2);
+
+            for(int i=0; i<len; i++)
+	    {
+		if(rawHex2[i]==' ')
+		{
+			for(int j=i; j<len; j++)
+			{
+				rawHex2[j]=rawHex2[j+1];
+			}
+		len--;
+		}
+	    }
+
+            printf("%s", "Printing cipher: \n");
+            printf("%s \n", rawHex1);
+            printf("%s \n", rawHex2);
+
 
 	    /* Decrypt the ciphertext */
 	    decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
