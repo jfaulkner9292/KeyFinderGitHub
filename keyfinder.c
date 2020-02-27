@@ -28,11 +28,12 @@ int main (void)
     FILE *test;
     FILE *fp;
     
-    char* wordsFile = "/home/user/Documents/KeyFinderGitHub/wordstest.txt";
+    char* wordsFile = "/home/user/Documents/KeyFinderGitHub/words.txt";
     char* testFile = "/home/user/Documents/KeyFinderGitHub/testOutput.txt";
 
     fp = fopen(wordsFile, "r");
     test = fopen(testFile, "w");
+    
     if (fp == NULL)
     {
         printf("Could not open file %s", wordsFile);
@@ -72,13 +73,15 @@ int main (void)
         {
             str[i] = '#';
         }
+     
+	
 
             //printf("%s", "tried to print");
             //printf("%s \n", str);
 	    /* A 128 bit key */
 	    unsigned char *key = (unsigned char *) str;
             
-
+            
 	    /* A 128 bit IV */
 	    unsigned char *iv = (unsigned char *)"aabbccddeeff00998877665544332211";
 
@@ -102,6 +105,7 @@ int main (void)
 	    ciphertext_len = encrypt (plaintext, strlen ((char *)plaintext), key, iv,
 		                      ciphertext);
 
+            freopen("testOutput.txt", "w+", test);
 	    /* Do something useful with the ciphertext here */
 	    //printf("Ciphertext is:\n");
 	    //BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
@@ -112,7 +116,7 @@ int main (void)
             fopen(testFile, "r");
             fread(&rawCipher, sizeof(char), 256, test);
 
-	    
+	    //printf("%s", rawCipher);
            
             strncpy(rawHex1, &rawCipher[7], 47);
             strncpy(rawHex2, &rawCipher[81], 47);
@@ -146,7 +150,7 @@ int main (void)
 		}
 	    }
 
-            printf("%s", "Printing cipher: \n");
+            //printf("%s", "Printing cipher: \n");
             printf("%s \n", rawHex1);
             printf("%s \n", rawHex2);
 
