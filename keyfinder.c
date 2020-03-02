@@ -65,9 +65,6 @@ int main (void)
 	*/
 	unsigned char ciphertext[128];
 
-	/* Buffer for the decrypted text */
-	unsigned char decryptedtext[128];
-
 	int ciphertext_len;
 
 	/* Encrypt the plaintext */
