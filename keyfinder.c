@@ -29,18 +29,11 @@ int main (void)
 
     bool found = false;
     
-
-    FILE *test;
     FILE *fp;
-    FILE *fullFile;
     
     char* wordsFile = "/home/user/Documents/KeyFinderGitHub/words.txt";
-    char* testFile = "/home/user/Documents/KeyFinderGitHub/testOutput.txt";
-    char* fullOutputFile = "/home/user/Documents/KeyFinderGitHub/thingOutput.txt";
 
     fp = fopen(wordsFile, "r");
-    test = fopen(testFile, "w");
-    fullFile = fopen(fullOutputFile, "w");
     
     if (fp == NULL)
     {
@@ -48,31 +41,7 @@ int main (void)
         return 1;
     }
 
-  
-
-    //Fills rest of str array with "#"s
-    /*while (fgets(str, 16, fp) != NULL)
-    {
-        numChar = strlen(str) - 1;
-	
-        for (int i = numChar; i < 16; i++)
-        {
-            str[i] = '#';
-        }
-        //Prints word, followed by length of word
-        //printf("%s \n", str);
-        //printf("%d \n", numChar);
-    }*/
-
-    
-    
-
-    /*
-     * Set up the key and iv. Do I need to say to not hard code these in a
-     * real application? :-)
-     */
-	//(fgets(str, 16, fp) != NULL)
-    while ((fgets(str, 17, fp) != NULL) && !found) //Will eventually be while ciphers don't match
+    while ((fgets(str, 17, fp) != NULL))
     {
 
         numChar = strlen(str) - 1;
@@ -82,88 +51,46 @@ int main (void)
             str[i] = '#';
         }
      
-	
+	unsigned char *key = (unsigned char *) str;
 
-            //printf("%s", "tried to print");
-            //printf("%s \n", str);
-	    /* A 128 bit key */
-	    unsigned char *key = (unsigned char *) str;
-            
-            
-	    /* A 128 bit IV */
-	    //unsigned char *iv = (unsigned char *)"aabbccddeeff00998877665544332211";
-            //unsigned char iv[16] = {aabb, ccdd, eeff, 0099, 8877, 6655, 4433, 2211};
-            unsigned char iv[16] = {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11};
+        unsigned char iv[16] = {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11};
 
-	    /* Message to be encrypted */
-	    unsigned char *plaintext =
+	unsigned char *plaintext =
 		(unsigned char *)"This is lab1 in CS3840.";
 
-	    /*
-	     * Buffer for ciphertext. Ensure the buffer is long enough for the
-	     * ciphertext which may be longer than the plaintext, depending on the
-	     * algorithm and mode.
-	     */
-	    unsigned char ciphertext[128];
+	/*
+	 * Buffer for ciphertext. Ensure the buffer is long enough for the
+	 * ciphertext which may be longer than the plaintext, depending on the
+	 * algorithm and mode.
+	*/
+	unsigned char ciphertext[128];
 
-	    /* Buffer for the decrypted text */
-	    unsigned char decryptedtext[128];
+	/* Buffer for the decrypted text */
+	unsigned char decryptedtext[128];
 
-	    int decryptedtext_len, ciphertext_len;
-	    //printf("%s \n", key);
+	int ciphertext_len;
 
-	    /* Encrypt the plaintext */
-	    ciphertext_len = encrypt (plaintext, strlen ((char *)plaintext), key, iv,
+	/* Encrypt the plaintext */
+	ciphertext_len = encrypt (plaintext, strlen ((char *)plaintext), key, iv,
 		                      ciphertext);
 
-            freopen("testOutput.txt", "w+", test);
-	    /* Do something useful with the ciphertext here */
-	    //printf("Ciphertext is:\n");
-	    //printf("%s \n", ciphertext);
+	char* buf_str = (char*) malloc(2*ciphertext_len+1);
+	char* buf_ptr = buf_str;
+	for(int i = 0; i < ciphertext_len; i++)
+	{
+	    buf_ptr += sprintf(buf_ptr, "%02x", ciphertext[i]);
+	}
+	*(buf_ptr + 1) = '\0';
 
-	    char* buf_str = (char*) malloc(2*ciphertext_len+1);
-	    char* buf_ptr = buf_str;
-	    for(int i = 0; i < ciphertext_len; i++)
-	    {
-	        buf_ptr += sprintf(buf_ptr, "%02x", ciphertext[i]);
-	    }
-	    *(buf_ptr + 1) = '\0';
-	    
-	    printf("%s \n", buf_str);
-
-            
-
-
-	    fputs(buf_str, fullFile);
-	    fputs("\n", fullFile);
-
-	    /* Decrypt the ciphertext */
-	    //decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
-	    //	                        decryptedtext);
-
-	    /* Add a NULL terminator. We are expecting printable text */
-	    //decryptedtext[decryptedtext_len] = '\0';
-
-	    /* Show the decrypted text */
-	    //printf("Decrypted text is:\n");
-	    //printf("%s\n", decryptedtext);*/
-
-            if (strncmp(givenCipher, buf_str, 32) == 0)
-	    {
-		 found = true;
-                 printf("The key is is:\n");
-                 printf("%s", str);
-                 
-	    }
-
+        if (strncmp(givenCipher, buf_str, 32) == 0)
+	{
+             printf("The key is is:\n");
+             printf("%s \n", str);
+	     break;
+	}
     }
 
     fclose(fp);
-    fclose(test);
-    fclose(fullFile);
-
-    
-    
     return 0;
 }
 
