@@ -3,6 +3,8 @@
 #include <openssl/aes.h>
 #include <openssl/err.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdbool.h>
 
 void handleErrors(void);
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
@@ -14,56 +16,32 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 
 int main (void)
 {
-    char givenCipher[64];
+    char givenCipher[64] = "6b642b4d232d28fb9272d3aae053d6410ef9dfb267bbb9d9adcfee0f2d823f14";
     char rawCipher[256];
 
+    char rawHex[100];
     char rawHex1[48];
     char rawHex2[48];
 
-    char str[16];
+    char str[17];
     int numChar;
     int rawCipherInt;
-    
 
-    FILE *test;
+    bool found = false;
+    
     FILE *fp;
     
-    char* wordsFile = "/home/user/Documents/KeyFinderGitHub/wordstest.txt";
-    char* testFile = "/home/user/Documents/KeyFinderGitHub/testOutput.txt";
+    char* wordsFile = "/home/user/Documents/KeyFinderGitHub/words.txt";
 
     fp = fopen(wordsFile, "r");
-    test = fopen(testFile, "w");
+    
     if (fp == NULL)
     {
         printf("Could not open file %s", wordsFile);
         return 1;
     }
 
-  
-
-    //Fills rest of str array with "#"s
-    /*while (fgets(str, 16, fp) != NULL)
-    {
-        numChar = strlen(str) - 1;
-	
-        for (int i = numChar; i < 16; i++)
-        {
-            str[i] = '#';
-        }
-        //Prints word, followed by length of word
-        //printf("%s \n", str);
-        //printf("%d \n", numChar);
-    }*/
-
-    
-    
-
-    /*
-     * Set up the key and iv. Do I need to say to not hard code these in a
-     * real application? :-)
-     */
-	//(fgets(str, 16, fp) != NULL)
-    while (fgets(str, 16, fp) != NULL) //Will eventually be while ciphers don't match
+    while ((fgets(str, 17, fp) != NULL))
     {
 
         numChar = strlen(str) - 1;
@@ -72,101 +50,44 @@ int main (void)
         {
             str[i] = '#';
         }
+     
+	unsigned char *key = (unsigned char *) str;
 
-            //printf("%s", "tried to print");
-            //printf("%s \n", str);
-	    /* A 128 bit key */
-	    unsigned char *key = (unsigned char *) str;
-            
+        unsigned char iv[16] = {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11};
 
-	    /* A 128 bit IV */
-	    unsigned char *iv = (unsigned char *)"aabbccddeeff00998877665544332211";
-
-	    /* Message to be encrypted */
-	    unsigned char *plaintext =
+	unsigned char *plaintext =
 		(unsigned char *)"This is lab1 in CS3840.";
 
-	    /*
-	     * Buffer for ciphertext. Ensure the buffer is long enough for the
-	     * ciphertext which may be longer than the plaintext, depending on the
-	     * algorithm and mode.
-	     */
-	    unsigned char ciphertext[128];
+	/*
+	 * Buffer for ciphertext. Ensure the buffer is long enough for the
+	 * ciphertext which may be longer than the plaintext, depending on the
+	 * algorithm and mode.
+	*/
+	unsigned char ciphertext[128];
 
-	    /* Buffer for the decrypted text */
-	    unsigned char decryptedtext[128];
+	int ciphertext_len;
 
-	    int decryptedtext_len, ciphertext_len;
-
-	    /* Encrypt the plaintext */
-	    ciphertext_len = encrypt (plaintext, strlen ((char *)plaintext), key, iv,
+	/* Encrypt the plaintext */
+	ciphertext_len = encrypt (plaintext, strlen ((char *)plaintext), key, iv,
 		                      ciphertext);
 
-	    /* Do something useful with the ciphertext here */
-	    //printf("Ciphertext is:\n");
-	    //BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
-            BIO_dump_fp (test, (const char *)ciphertext, ciphertext_len);
+	char* buf_str = (char*) malloc(2*ciphertext_len+1);
+	char* buf_ptr = buf_str;
+	for(int i = 0; i < ciphertext_len; i++)
+	{
+	    buf_ptr += sprintf(buf_ptr, "%02x", ciphertext[i]);
+	}
+	*(buf_ptr + 1) = '\0';
 
-            fclose(test);
-
-            fopen(testFile, "r");
-            fread(&rawCipher, sizeof(char), 256, test);
-
-	    
-           
-            strncpy(rawHex1, &rawCipher[7], 47);
-            strncpy(rawHex2, &rawCipher[81], 47);
-
-            int len;
-            len = strlen(rawHex1);
-
-            for(int i=0; i<len; i++)
-	    {
-		if(rawHex1[i]==' ')
-		{
-			for(int j=i; j<len; j++)
-			{
-				rawHex1[j]=rawHex1[j+1];
-			}
-		len--;
-		}
-	    }
-
-            len = strlen(rawHex2);
-
-            for(int i=0; i<len; i++)
-	    {
-		if(rawHex2[i]==' ')
-		{
-			for(int j=i; j<len; j++)
-			{
-				rawHex2[j]=rawHex2[j+1];
-			}
-		len--;
-		}
-	    }
-
-            printf("%s", "Printing cipher: \n");
-            printf("%s \n", rawHex1);
-            printf("%s \n", rawHex2);
-
-
-	    /* Decrypt the ciphertext */
-	    decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
-		                        decryptedtext);
-
-	    /* Add a NULL terminator. We are expecting printable text */
-	    decryptedtext[decryptedtext_len] = '\0';
-
-	    /* Show the decrypted text */
-	    //printf("Decrypted text is:\n");
-	    //printf("%s\n", decryptedtext);
-
+        if (strncmp(givenCipher, buf_str, 32) == 0)
+	{
+             printf("The key is is:\n");
+             printf("%s \n", str);
+	     break;
+	}
     }
 
     fclose(fp);
-    fclose(test);
-    
     return 0;
 }
 
