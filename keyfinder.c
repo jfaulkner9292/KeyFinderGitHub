@@ -4,6 +4,7 @@
 #include <openssl/err.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 void handleErrors(void);
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
@@ -15,16 +16,18 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 
 int main (void)
 {
-    char givenCipher[64];
+    char givenCipher[64] = "6b642b4d232d28fb9272d3aae053d6410ef9dfb267bbb9d9adcfee0f2d823f14";
     char rawCipher[256];
 
     char rawHex[100];
     char rawHex1[48];
     char rawHex2[48];
 
-    char str[16];
+    char str[17];
     int numChar;
     int rawCipherInt;
+
+    bool found = false;
     
 
     FILE *test;
@@ -69,7 +72,7 @@ int main (void)
      * real application? :-)
      */
 	//(fgets(str, 16, fp) != NULL)
-    while (fgets(str, 16, fp) != NULL) //Will eventually be while ciphers don't match
+    while ((fgets(str, 17, fp) != NULL) && !found) //Will eventually be while ciphers don't match
     {
 
         numChar = strlen(str) - 1;
@@ -88,7 +91,9 @@ int main (void)
             
             
 	    /* A 128 bit IV */
-	    unsigned char *iv = (unsigned char *)"aabbccddeeff00998877665544332211";
+	    //unsigned char *iv = (unsigned char *)"aabbccddeeff00998877665544332211";
+            //unsigned char iv[16] = {aabb, ccdd, eeff, 0099, 8877, 6655, 4433, 2211};
+            unsigned char iv[16] = {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11};
 
 	    /* Message to be encrypted */
 	    unsigned char *plaintext =
@@ -125,89 +130,10 @@ int main (void)
 	    *(buf_ptr + 1) = '\0';
 	    
 	    printf("%s \n", buf_str);
-/*
-	    //BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
-            BIO_dump_fp (test, (const char *)ciphertext, ciphertext_len);
 
-            fclose(test);
-
-            test = fopen(testFile, "r");
-            fread(rawCipher, sizeof(char), 256, test);
-
-	    //printf("%s", rawCipher);
-           
-            strncpy(rawHex1, &rawCipher[7], 47);
-            strncpy(rawHex2, &rawCipher[81], 47);
+            
 
 
-            int len;
-            len = strlen(rawHex1);
-
-            for(int i=0; i<len; i++)
-	    {
-		if(rawHex1[i]==' ')
-		{
-			for(int j=i; j<len; j++)
-			{
-				rawHex1[j]=rawHex1[j+1];
-			}
-		len--;
-		}
-	    }
-
-            len = strlen(rawHex2);
-
-            for(int i=0; i<len; i++)
-	    {
-		if(rawHex2[i]==' ')
-		{
-			for(int j=i; j<len; j++)
-			{
-				rawHex2[j]=rawHex2[j+1];
-			}
-		len--;
-		}
-	    }
-
-	    for(int i=0; i<len; i++)
-	    {
-		if(rawHex1[i]=='-')
-		{
-			for(int j=i; j<len; j++)
-			{
-				rawHex1[j]=rawHex1[j+1];
-			}
-		len--;
-		}
-	    }
-
-            len = strlen(rawHex2);
-
-            for(int i=0; i<len; i++)
-	    {
-		if(rawHex2[i]=='-')
-		{
-			for(int j=i; j<len; j++)
-			{
-				rawHex2[j]=rawHex2[j+1];
-			}
-		len--;
-		}
-	    }
-
-	    strcpy(rawHex, rawHex1);
-	    strcat(rawHex, rawHex2);
-
-
-	    //printf("%s", rawHex);
-	    //printf("%s", "\n");
-	    //printf("%s", rawHex2);
-	    //printf("%s", "\n");
-
-            //printf("%s", "Printing cipher: \n");
-            //printf("%s \n", rawHex1);
-            //printf("%s \n", rawHex2);
-*/
 	    fputs(buf_str, fullFile);
 	    fputs("\n", fullFile);
 
@@ -222,11 +148,21 @@ int main (void)
 	    //printf("Decrypted text is:\n");
 	    //printf("%s\n", decryptedtext);*/
 
+            if (strncmp(givenCipher, buf_str, 32) == 0)
+	    {
+		 found = true;
+                 printf("The key is is:\n");
+                 printf("%s", str);
+                 
+	    }
+
     }
 
     fclose(fp);
     fclose(test);
     fclose(fullFile);
+
+    
     
     return 0;
 }
