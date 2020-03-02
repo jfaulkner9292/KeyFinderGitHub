@@ -3,6 +3,7 @@
 #include <openssl/aes.h>
 #include <openssl/err.h>
 #include <string.h>
+#include <stdio.h>
 
 void handleErrors(void);
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
@@ -17,6 +18,7 @@ int main (void)
     char givenCipher[64];
     char rawCipher[256];
 
+    char rawHex[100];
     char rawHex1[48];
     char rawHex2[48];
 
@@ -27,12 +29,15 @@ int main (void)
 
     FILE *test;
     FILE *fp;
+    FILE *fullFile;
     
     char* wordsFile = "/home/user/Documents/KeyFinderGitHub/words.txt";
     char* testFile = "/home/user/Documents/KeyFinderGitHub/testOutput.txt";
+    char* fullOutputFile = "/home/user/Documents/KeyFinderGitHub/thingOutput.txt";
 
     fp = fopen(wordsFile, "r");
     test = fopen(testFile, "w");
+    fullFile = fopen(fullOutputFile, "w");
     
     if (fp == NULL)
     {
@@ -100,6 +105,7 @@ int main (void)
 	    unsigned char decryptedtext[128];
 
 	    int decryptedtext_len, ciphertext_len;
+	    //printf("%s \n", key);
 
 	    /* Encrypt the plaintext */
 	    ciphertext_len = encrypt (plaintext, strlen ((char *)plaintext), key, iv,
@@ -108,18 +114,31 @@ int main (void)
             freopen("testOutput.txt", "w+", test);
 	    /* Do something useful with the ciphertext here */
 	    //printf("Ciphertext is:\n");
+	    //printf("%s \n", ciphertext);
+
+	    char* buf_str = (char*) malloc(2*ciphertext_len+1);
+	    char* buf_ptr = buf_str;
+	    for(int i = 0; i < ciphertext_len; i++)
+	    {
+	        buf_ptr += sprintf(buf_ptr, "%02x", ciphertext[i]);
+	    }
+	    *(buf_ptr + 1) = '\0';
+	    
+	    printf("%s \n", buf_str);
+/*
 	    //BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
             BIO_dump_fp (test, (const char *)ciphertext, ciphertext_len);
 
             fclose(test);
 
-            fopen(testFile, "r");
-            fread(&rawCipher, sizeof(char), 256, test);
+            test = fopen(testFile, "r");
+            fread(rawCipher, sizeof(char), 256, test);
 
 	    //printf("%s", rawCipher);
            
             strncpy(rawHex1, &rawCipher[7], 47);
             strncpy(rawHex2, &rawCipher[81], 47);
+
 
             int len;
             len = strlen(rawHex1);
@@ -150,26 +169,64 @@ int main (void)
 		}
 	    }
 
-            //printf("%s", "Printing cipher: \n");
-            printf("%s \n", rawHex1);
-            printf("%s \n", rawHex2);
+	    for(int i=0; i<len; i++)
+	    {
+		if(rawHex1[i]=='-')
+		{
+			for(int j=i; j<len; j++)
+			{
+				rawHex1[j]=rawHex1[j+1];
+			}
+		len--;
+		}
+	    }
 
+            len = strlen(rawHex2);
+
+            for(int i=0; i<len; i++)
+	    {
+		if(rawHex2[i]=='-')
+		{
+			for(int j=i; j<len; j++)
+			{
+				rawHex2[j]=rawHex2[j+1];
+			}
+		len--;
+		}
+	    }
+
+	    strcpy(rawHex, rawHex1);
+	    strcat(rawHex, rawHex2);
+
+
+	    //printf("%s", rawHex);
+	    //printf("%s", "\n");
+	    //printf("%s", rawHex2);
+	    //printf("%s", "\n");
+
+            //printf("%s", "Printing cipher: \n");
+            //printf("%s \n", rawHex1);
+            //printf("%s \n", rawHex2);
+*/
+	    fputs(buf_str, fullFile);
+	    fputs("\n", fullFile);
 
 	    /* Decrypt the ciphertext */
-	    decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
-		                        decryptedtext);
+	    //decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
+	    //	                        decryptedtext);
 
 	    /* Add a NULL terminator. We are expecting printable text */
-	    decryptedtext[decryptedtext_len] = '\0';
+	    //decryptedtext[decryptedtext_len] = '\0';
 
 	    /* Show the decrypted text */
 	    //printf("Decrypted text is:\n");
-	    //printf("%s\n", decryptedtext);
+	    //printf("%s\n", decryptedtext);*/
 
     }
 
     fclose(fp);
     fclose(test);
+    fclose(fullFile);
     
     return 0;
 }
