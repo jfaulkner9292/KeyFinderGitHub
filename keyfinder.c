@@ -17,16 +17,10 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 int main (void)
 {
     char givenCipher[64] = "6b642b4d232d28fb9272d3aae053d6410ef9dfb267bbb9d9adcfee0f2d823f14";
-    char rawCipher[256];
-
-    char rawHex[100];
-    char rawHex1[48];
-    char rawHex2[48];
 
     char str[17];
     int numChar;
-    int rawCipherInt;
-
+   
     bool found = false;
     
     FILE *fp;
@@ -73,6 +67,7 @@ int main (void)
 
 	char* buf_str = (char*) malloc(2*ciphertext_len+1);
 	char* buf_ptr = buf_str;
+
 	for(int i = 0; i < ciphertext_len; i++)
 	{
 	    buf_ptr += sprintf(buf_ptr, "%02x", ciphertext[i]);
